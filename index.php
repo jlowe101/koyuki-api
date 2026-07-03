@@ -50,6 +50,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 60 seconds to allow the backend browser to check without cutting off
 
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+
+        // Print any cURL connection errors
+        if(curl_errno($ch)){
+            echo 'Curl error: ' . curl_error($ch);
+        }
+
+// Print the raw response from the API server
+var_dump($response);
+
         $response = curl_exec($ch);
         $curl_error = curl_error($ch);
         $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
