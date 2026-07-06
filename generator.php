@@ -74,7 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 
     if (isset($json_data['cookie'])) {
         $api_url = "https://zxndev.xyz/api/v1/check";
-        $api_key = "nf_ea7ace39dfe7b8fef7247ce0caafe968"; 
+        // Dynamically request API Key from Heroku Config Vars rather than hardcoding
+        $api_key = getenv('ZNF_API_KEY'); 
 
         $safe_cookie = mb_convert_encoding($json_data['cookie'], 'UTF-8', 'UTF-8');
         $payload = json_encode(['cookie_data' => $safe_cookie], JSON_UNESCAPED_SLASHES);
