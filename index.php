@@ -10,7 +10,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // --- ZNFCHECKER API INTEGRATION ---
         $api_url = "https://zxndev.xyz/api/v1/check";
-        $api_key = "nf_ea7ace39dfe7b8fef7247ce0caafe968"; 
+        // Fetches securely from Heroku environment variables instead of hardcoding
+        $api_key = getenv('ZNF_API_KEY'); 
 
         // Force UTF-8 encoding to prevent json_encode from failing on weird cookie characters
         $safe_cookie = mb_convert_encoding($json_data['cookie'], 'UTF-8', 'UTF-8');
@@ -49,17 +50,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0); 
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 60); // 60 seconds to allow the backend browser to check without cutting off
-
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-
-        // Print any cURL connection errors
-        if(curl_errno($ch)){
-            echo 'Curl error: ' . curl_error($ch);
-        }
-
-// Print the raw response from the API server
-var_dump($response);
 
         $response = curl_exec($ch);
         $curl_error = curl_error($ch);
@@ -749,7 +739,18 @@ var_dump($response);
     // --- Unified Validation Process (Handles both Single & Bulk) ---
     async function processBulk() {
         const rawText = $('#bulkInput').val().trim();
-        if (!rawText) return alert("Please paste an input payload first!");
+        if (!rawText) {
+            Swal.fire({
+                title: 'No Input Detected',
+                text: 'Please paste an input payload first!',
+                icon: 'warning',
+                background: '#020613',
+                color: '#f0f8ff',
+                confirmButtonColor: '#00e5ff',
+                customClass: { popup: 'border border-[rgba(0,229,255,0.3)] rounded-2xl' }
+            });
+            return;
+        }
 
         const cookies = parseMixedInput(rawText);
         
