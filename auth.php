@@ -75,6 +75,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 } elseif ($user['status'] === 'rejected') {
                     $error_msg = "Access Denied: Your account has been revoked by the admin.";
                 } else {
+                    // SECURITY FIX: Prevent Session Fixation by regenerating the ID upon successful login
+                    session_regenerate_id(true);
+                    
                     $_SESSION['user_logged_in'] = true;
                     $_SESSION['user_username'] = $user['username'];
                     header("Location: generator.php");
