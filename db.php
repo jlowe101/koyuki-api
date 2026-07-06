@@ -1,15 +1,6 @@
 <?php
-// --- LOCALHOST TESTING FALLBACK ---
-// Paste your Heroku Postgres URI inside the quotes below.
-$local_test_url = "postgres://ub8dfpcbfet3mk:p57d021c5a5d0633e0456258133704afb147dee83de352cab62ed15b40c7c9c83@casrkuuedp6an1.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d9drma8b54tjlf"; 
-
-// Retrieve the Heroku Postgres Database URL automatically
+// Retrieve the Heroku Postgres Database URL automatically from the environment
 $database_url = getenv('DATABASE_URL');
-
-// If getenv() fails (because we are on localhost), use the local fallback URL
-if (!$database_url && !empty($local_test_url)) {
-    $database_url = $local_test_url;
-}
 
 if ($database_url) {
     // Parse the URL into components
@@ -44,7 +35,7 @@ if ($database_url) {
                 password_hash VARCHAR(255) NOT NULL
             )");
             
-            // 3. Table for generator users (Added Status for Admin Approval)
+            // 3. Table for generator users (Status for Admin Approval)
             $pdo->exec("CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 email VARCHAR(255) UNIQUE NOT NULL,
@@ -55,7 +46,7 @@ if ($database_url) {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )");
 
-            // FIX: Auto-patch existing tables that were created before the status column was added
+            // Auto-patch existing tables that were created before the status column was added
             try {
                 $pdo->exec("ALTER TABLE users ADD COLUMN status VARCHAR(50) DEFAULT 'pending'");
             } catch (PDOException $e) {
@@ -79,6 +70,6 @@ if ($database_url) {
     }
 } else {
     // Fallback error if no URL is provided
-    error_log("DATABASE_URL not found. Please provide a URL for local testing.");
+    error_log("DATABASE_URL not found. Please ensure the Heroku Postgres add-on is attached.");
 }
 ?>
