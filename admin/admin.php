@@ -108,6 +108,10 @@ if (isset($pdo)) {
             $stmt->execute([$username]);
             $admin_user = $stmt->fetch(PDO::FETCH_ASSOC);
             if ($admin_user && password_verify($password, $admin_user['password_hash'])) {
+                
+                // SECURITY FIX: Prevent Session Fixation for Administrators
+                session_regenerate_id(true);
+                
                 $_SESSION['admin_logged_in'] = true;
                 $_SESSION['admin_username'] = $admin_user['username'];
                 header("Location: admin.php");
@@ -341,12 +345,14 @@ if (isset($pdo)) {
                                         
                                         $formatted_id = sprintf('%05d', $row['id']);
                                         $cookie_preview = htmlspecialchars(substr($row['cookie_data'], 0, 70)) . '...';
-                                        $full_cookie = htmlspecialchars($row['cookie_data']);
+                                        
+                                        // SECURITY FIX: Stored XSS Prevention. Properly encode quotes in the tooltip so HTML isn't broken
+                                        $full_cookie = htmlspecialchars($row['cookie_data'], ENT_QUOTES, 'UTF-8');
                                         
                                         echo "<tr class='hover:bg-[rgba(0,229,255,0.03)] transition-colors duration-200'>";
                                         echo "<td class='px-6 py-4'><span class='bg-[rgba(0,229,255,0.1)] text-[#00e5ff] border border-[rgba(0,229,255,0.3)] px-2 py-1 rounded text-xs font-mono font-bold'>#" . $formatted_id . "</span></td>";
                                         echo "<td class='px-6 py-4 text-sm text-slate-300 font-medium'><i class='far fa-clock mr-2 text-[#7fa4c9] opacity-70'></i>" . $formatted_date . "</td>";
-                                        echo "<td class='px-6 py-4 text-xs font-mono text-emerald-300/80 cursor-help' title='$full_cookie'>" . $cookie_preview . "</td>";
+                                        echo "<td class='px-6 py-4 text-xs font-mono text-emerald-300/80 cursor-help' title='" . $full_cookie . "'>" . $cookie_preview . "</td>";
                                         echo "<td class='px-6 py-4 text-center'>
                                                 <div class='flex justify-center gap-2'>
                                                     <button onclick='copyToClipboard(`" . base64_encode($row['cookie_data']) . "`)' class='action-btn' title='Copy Data'><i class='fas fa-copy'></i></button>
@@ -437,7 +443,7 @@ if (isset($pdo)) {
 
                                 if (count($users) > 0) {
                                     foreach ($users as $user) {
-                                        $user_status = $user['status'] ?? 'pending'; // FIX: Safe fallback
+                                        $user_status = $user['status'] ?? 'pending';
                                         $statusBadge = '';
                                         if ($user_status == 'approved') {
                                             $statusBadge = '<span class="text-emerald-400 bg-emerald-400/10 border border-emerald-400/30 px-3 py-1 rounded-full text-[10px] uppercase font-bold tracking-wider"><i class="fas fa-check-circle mr-1"></i> Approved</span>';
